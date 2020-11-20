@@ -188,12 +188,12 @@ func (rb *Buff) getById(id int) (interface{}, error) {
 
 	// Check it's not before our first known id
 	if id < rb.oldest {
-		return nil, errors.Errorf("requested ID %d is lower than oldest id %d", id, rb.newest)
+		return nil, errors.Errorf("requested ID %d is lower than oldest id %d", id, rb.oldest)
 	}
 
 	// Check it's not after our last known id
 	if id > rb.newest {
-		return nil, errors.Errorf("requested id %d is higher than most recent id %d", id, rb.oldest)
+		return nil, errors.Errorf("requested id %d is higher than most recent id %d", id, rb.newest)
 	}
 
 	return rb.buff[id%rb.count], nil

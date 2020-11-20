@@ -117,7 +117,7 @@ func TestBuff_Push(t *testing.T) {
 
 // Test ID upsert on ringbuff (bulk of cases)
 func TestBuff_UpsertById(t *testing.T) {
-	rb := setup()
+	rb := NewBuff(5)
 	v := 15
 	err := rb.UpsertById(v, &v)
 	if err != nil {
@@ -127,10 +127,11 @@ func TestBuff_UpsertById(t *testing.T) {
 		t.Error("Failed to get correct ID")
 	}
 
-	val, _ := rb.GetById(7)
+	val, err := rb.GetById(7)
 	if val != nil {
 		t.Errorf("Should have gotten nil value for id 7")
 	}
+	fmt.Println(err.Error())
 	v = 14
 	err = rb.UpsertById(v, &v)
 	if err != nil {
