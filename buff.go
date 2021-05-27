@@ -22,16 +22,15 @@ import (
 
 // A circular buffer with the ability to use IDs as position and locks built in
 type Buff struct {
-	buff                  []interface{}
-	count, oldest, newest int
-	mux                   sync.RWMutex
+	buff           []interface{}
+	oldest, newest int
+	mux            sync.RWMutex
 }
 
 // Initialize a new ring buffer with length n
 func NewBuff(n int) *Buff {
 	rb := &Buff{
 		buff:   make([]interface{}, n),
-		count:  n,
 		oldest: 0,
 		newest: -1,
 	}
@@ -92,7 +91,7 @@ func (rb *Buff) UpsertById(newId int, val interface{}) error {
 	}
 
 	//add the data at the correct location
-	index := newId % rb.count
+	index := newId % len(rb.buff)
 	rb.buff[index] = val
 
 	return nil
@@ -103,7 +102,7 @@ func (rb *Buff) Get() interface{} {
 	rb.mux.RLock()
 	defer rb.mux.RUnlock()
 
-	mostRecentIndex := rb.newest % rb.count
+	mostRecentIndex := rb.newest % len(rb.buff)
 	return rb.buff[mostRecentIndex]
 }
 
@@ -120,7 +119,7 @@ func (rb *Buff) GetByIndex(i int) (interface{}, error) {
 	rb.mux.RLock()
 	defer rb.mux.RUnlock()
 
-	if i < 0 || i >= rb.count {
+	if i < 0 || i >= len(rb.buff) {
 		return nil, errors.Errorf("Could not get item at index %d: index out of bounds", i)
 	}
 
@@ -157,14 +156,14 @@ func (rb *Buff) Len() int {
 	rb.mux.RLock()
 	defer rb.mux.RUnlock()
 
-	return rb.count
+	return len(rb.buff)
 }
 
 // next is a helper function for ringbuff
 // it handles incrementing the old & new markers
 func (rb *Buff) next() {
 	rb.newest++
-	if rb.newest >= rb.count {
+	if rb.newest >= len(rb.buff) {
 		rb.oldest++
 	}
 }
@@ -172,7 +171,7 @@ func (rb *Buff) next() {
 // Push a round to the buffer
 func (rb *Buff) push(val interface{}) {
 	rb.next()
-	rb.buff[rb.newest%rb.count] = val
+	rb.buff[rb.newest%len(rb.buff)] = val
 }
 
 // Retrieve an entry with the given ID for internal use without getting the read
@@ -189,5 +188,5 @@ func (rb *Buff) getById(id int) (interface{}, error) {
 		return nil, errors.Errorf("requested id %d is higher than most recent id %d", id, rb.newest)
 	}
 
-	return rb.buff[id%rb.count], nil
+	return rb.buff[id%len(rb.buff)], nil
 }
