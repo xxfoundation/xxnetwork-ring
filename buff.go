@@ -75,7 +75,7 @@ func (rb *Buff) UpsertById(newId int, val interface{}) error {
 	// Get most recent ID so we can figure out where to put this
 	firstEmptyID := rb.newest + 1
 
-	if newId-rb.oldest >= len(rb.buff) {
+	if newId-rb.newest >= len(rb.buff) {
 		for i := 0; i < len(rb.buff); i++ {
 			rb.buff[i] = nil
 		}
