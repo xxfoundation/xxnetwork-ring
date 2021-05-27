@@ -8,7 +8,6 @@
 package ring
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 )
@@ -48,7 +47,7 @@ func TestBuff_GetOldestId(t *testing.T) {
 	rb = setup()
 	//rb.Push(&struct{}{})
 	id = rb.GetOldestId()
-	fmt.Println("new", rb.GetNewestId())
+
 	if id != 0 {
 		t.Errorf("Should have returned 0, instead got: %d", id)
 	}
@@ -57,6 +56,71 @@ func TestBuff_GetOldestId(t *testing.T) {
 	id = rb.GetOldestId()
 	if id != 18 {
 		t.Errorf("Should have returned 18, instead got %d", id)
+	}
+
+	_ = rb.UpsertById(23, &struct{}{})
+	id = rb.GetOldestId()
+	if id != 19 {
+		t.Errorf("Should have returned 19, instead got %d", id)
+	}
+	id = rb.GetNewestId()
+	if id != 23 {
+		t.Errorf("Should have returned 23, instead got %d", id)
+	}
+
+	_ = rb.UpsertById(2000000, &struct{}{})
+	id = rb.GetOldestId()
+	if id != 2000000-4 {
+		t.Errorf("Should have returned %d, instead got %d", 2000000-4, id)
+	}
+
+	id = rb.GetNewestId()
+	if id != 2000000 {
+		t.Errorf("Should have returned %d, instead got %d", 2000000, id)
+	}
+
+	rb = NewBuff(5)
+	_ = rb.UpsertById(22, &struct{}{})
+	id = rb.GetOldestId()
+	if id != 18 {
+		t.Errorf("Should have returned 18, instead got %d", id)
+	}
+
+	id = rb.GetNewestId()
+	if id != 22 {
+		t.Errorf("Should have returned 22, instead got %d", id)
+	}
+
+	_ = rb.UpsertById(23, &struct{}{})
+	id = rb.GetOldestId()
+	if id != 19 {
+		t.Errorf("Should have returned 19, instead got %d", id)
+	}
+	id = rb.GetNewestId()
+	if id != 23 {
+		t.Errorf("Should have returned 23, instead got %d", id)
+	}
+
+}
+
+func TestBuff_WrapAround(t *testing.T) {
+
+	rb := NewBuff(5)
+	for i := 0; i < 5; i++ {
+		_ = rb.UpsertById(i+22, &struct{}{})
+	}
+	_ = rb.UpsertById(27, &struct{}{})
+
+	result, _ := rb.GetById(22)
+	if result != nil {
+		t.Errorf("Returned a value on out of scope input 22")
+	}
+
+	for i := 1; i < 5; i++ {
+		result, _ = rb.GetById(22 + i)
+		if result == nil {
+			t.Errorf("Returned nil on expected present result %d", 22+i)
+		}
 	}
 }
 
@@ -113,7 +177,7 @@ func TestBuff_UpsertById(t *testing.T) {
 	if val != nil {
 		t.Errorf("Should have gotten nil value for id 7")
 	}
-	fmt.Println(err.Error())
+
 	v = 14
 	err = rb.UpsertById(v, &v)
 	if err != nil {
