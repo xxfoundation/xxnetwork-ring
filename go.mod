@@ -1,4 +1,4 @@
-module gitlab.com/xx_network/ring
+module git.xx.network/xx_network/ring
 
 go 1.13
 
