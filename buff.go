@@ -126,7 +126,7 @@ func (rb *Buff) GetByIndex(i int) (interface{}, error) {
 	return rb.buff[i], nil
 }
 
-//retrieve all entries newer than the passed one
+// retrieve all entries newer than the passed one
 func (rb *Buff) GetNewerById(id int) ([]interface{}, error) {
 	rb.mux.RLock()
 	defer rb.mux.RUnlock()
